@@ -13,9 +13,9 @@ cmake_minimum_required (VERSION 2.8)
 project (BLE_BOOTLOADER)
 
 # define some more paths to projects we depend on
-set (MBED_SRC_PATH     ${BLE_BOOTLOADER_SOURCE_DIR}/../../mbed-src/libraries/mbed)
-set (BLE_API_SRC_PATH  ${BLE_BOOTLOADER_SOURCE_DIR}/../../BLE_API)
-set (NRF51822_SRC_PATH ${BLE_BOOTLOADER_SOURCE_DIR}/../../nRF51822)
+set (MBED_SRC_PATH     ${BLE_BOOTLOADER_SOURCE_DIR}/../mbed/libraries/mbed)
+set (BLE_API_SRC_PATH  ${BLE_BOOTLOADER_SOURCE_DIR}/../BLE_API)
+set (NRF51822_SRC_PATH ${BLE_BOOTLOADER_SOURCE_DIR}/../nRF51822)
 
 # It's best to hide all the details of setting up the variable SRCS in a CMake
 # macro. The macro can then be called in all the project CMake list files to add
@@ -43,7 +43,7 @@ macro (add_sources)
 endmacro()
 
 # decide about the actual compilers to be used ...
-set(TOOLCHAIN_SYSROOT /home/rgrover/ext/arm-toolchains/rvct/ARMCompiler_5.03_117_Linux)
+set(TOOLCHAIN_SYSROOT /usr/local/DS-5)
 set(CMAKE_CXX_COMPILER ${TOOLCHAIN_SYSROOT}/bin/armcc)
 set(CMAKE_C_COMPILER   ${TOOLCHAIN_SYSROOT}/bin/armcc)
 set(SIZE_COMMAND       size)
@@ -82,7 +82,8 @@ include_directories(
     # ${MBED_SRC_PATH}/targets/hal/TARGET_NORDIC
     # ${MBED_SRC_PATH}/targets/hal/TARGET_NORDIC/TARGET_MCU_NRF51822
     # ${MBED_SRC_PATH}/targets/hal/TARGET_NORDIC/TARGET_MCU_NRF51822/Lib
-    ${MBED_SRC_PATH}/targets/hal/TARGET_NORDIC/TARGET_MCU_NRF51822/TARGET_NRF51822_MKIT
+    #${MBED_SRC_PATH}/targets/hal/TARGET_NORDIC/TARGET_MCU_NRF51822/TARGET_NRF51822_MKIT
+    ${MBED_SRC_PATH}/targets/hal/TARGET_NORDIC/TARGET_MCU_NRF51822/TARGET_HRM1017
     # ${BLE_API_SRC_PATH}
     # ${BLE_API_SRC_PATH}/public
     # ${BLE_API_SRC_PATH}/common
@@ -98,7 +99,7 @@ include_directories(
     # ${NRF51822_SRC_PATH}/nordic/nrf-sdk/ble/rpc
     ${NRF51822_SRC_PATH}/nordic/nrf-sdk/s110
     ${NRF51822_SRC_PATH}/nordic/nrf-sdk/sd_common
-    ${BLE_BOOTLOADER_SOURCE_DIR}/../../Nordic/nrf51822-sdk-v6.1.0/nrf51822/Include
+    ${BLE_BOOTLOADER_SOURCE_DIR}/../Nordic/nrf51822-sdk-v6.1.0/nrf51822/Include
 )
 
 # Generic compiler flags
@@ -113,9 +114,12 @@ add_definitions(
     -DBLE_STACK_SUPPORT_REQD
     -O3
     --md
-    -DTARGET_NRF51822
+    -DTARGET_HRM1017
+#    -DTARGET_NRF51822
     -DTARGET_M0
     -DTARGET_NORDIC
+    -DTARGET_MCU_NRF51822
+    -DTARGET_MCU_NORDIC_16K
     -DTOOLCHAIN_ARM_STD
     -DTOOLCHAIN_ARM
     -D__CC_ARM
@@ -177,6 +181,7 @@ add_custom_command(
     TARGET ${MAIN_TARGET}
     COMMAND ${SIZE_COMMAND} ${MAIN_TARGET}
     COMMAND ${TOOLCHAIN_SYSROOT}/bin/fromelf --i32combined -o ${PROJECT_NAME}.hex ${MAIN_TARGET} # convert .elf to .hex
-    COMMAND srec_cat ${MBED_SRC_PATH}/targets/hal/TARGET_NORDIC/TARGET_MCU_NRF51822/Lib/s110_nrf51822_7_0_0/s110_nrf51822_7.0.0_softdevice.hex -intel ${PROJECT_NAME}.hex -intel -o combined.hex -intel
+    COMMAND srec_cat
+${MBED_SRC_PATH}/targets/hal/TARGET_NORDIC/TARGET_MCU_NRF51822/Lib/s110_nrf51822_7_1_0/s110_nrf51822_7.1.0_softdevice.hex -intel ${PROJECT_NAME}.hex -intel -o combined.hex -intel
     # follow this by copying the resulting combined.hex onto the target (possibly over USB)
 )
